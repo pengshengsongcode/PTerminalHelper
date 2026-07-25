@@ -1,0 +1,76 @@
+name: FinderTerminal
+
+options:
+  bundleIdPrefix: com.pengshengsong
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "26.0"
+
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    exactVersion: 3.0.1
+
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+targets:
+  FinderTerminal:
+    type: application
+    platform: macOS
+    sources:
+      - path: FinderTerminal
+        excludes:
+          - Info.plist
+          - FinderTerminal.entitlements
+    info:
+      path: FinderTerminal/Info.plist
+      properties:
+        CFBundleDisplayName: Finder Terminal
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        NSAppleEventsUsageDescription: Finder Terminal 需要读取 Finder 当前选中的项目或窗口目录，以便在对应路径打开终端。
+        NSDesktopFolderUsageDescription: Finder Terminal 需要在 Finder 没有窗口时使用桌面目录。
+        NSDocumentsFolderUsageDescription: Finder Terminal 需要访问您在 Finder 中选择的文稿目录。
+        NSDownloadsFolderUsageDescription: Finder Terminal 需要访问您在 Finder 中选择的下载目录。
+    entitlements:
+      path: FinderTerminal/FinderTerminal.entitlements
+      properties:
+        com.apple.security.automation.apple-events: true
+    dependencies:
+      - package: KeyboardShortcuts
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pengshengsong.FinderTerminal
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: FinderTerminal/Info.plist
+        CODE_SIGN_ENTITLEMENTS: FinderTerminal/FinderTerminal.entitlements
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+        COMBINE_HIDPI_IMAGES: YES
+    scheme:
+      gatherCoverageData: true
+      testTargets:
+        - FinderTerminalTests
+
+  FinderTerminalTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: FinderTerminalTests
+    dependencies:
+      - target: FinderTerminal
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pengshengsong.FinderTerminalTests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
