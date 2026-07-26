@@ -229,13 +229,20 @@ final class AppController: ObservableObject {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    /// 调用系统设置窗口命令，兼容 macOS 13 的 SwiftUI Settings 场景。
-    func showSettings() {
-        NSApp.sendAction(
+    /// 通过系统命令打开设置窗口，兼容仅支持旧接口的 macOS 13。
+    func showLegacySettings() {
+        let didOpenSettings = NSApp.sendAction(
             Selector(("showSettingsWindow:")),
             to: nil,
             from: nil
         )
+
+        if didOpenSettings {
+            logger.info("已通过兼容接口打开设置窗口")
+        } else {
+            logger.error("兼容接口未能打开设置窗口")
+        }
+
         NSApp.activate(ignoringOtherApps: true)
     }
 

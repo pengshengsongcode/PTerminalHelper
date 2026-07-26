@@ -37,10 +37,17 @@ struct MenuBarContentView: View {
 
         Divider()
 
-        Button("设置…") {
-            controller.showSettings()
+        if #available(macOS 14.0, *) {
+            SettingsLink {
+                Text("设置…")
+            }
+            .keyboardShortcut(",")
+        } else {
+            Button("设置…") {
+                controller.showLegacySettings()
+            }
+            .keyboardShortcut(",")
         }
-        .keyboardShortcut(",")
 
         Button("退出 Finder Terminal") {
             controller.quitApplication()
