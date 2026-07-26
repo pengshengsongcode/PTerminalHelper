@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import XCTest
 @testable import FinderTerminal
@@ -34,20 +35,50 @@ final class SettingsAndShortcutTests: XCTestCase {
         XCTAssertEqual(settings.selectedTerminal, .terminal)
     }
 
-    /// 验证快捷键只允许 Finder 前台状态。
-    func testShortcutPolicyOnlyAllowsFinder() {
-        XCTAssertTrue(
-            ShortcutPolicy.shouldHandle(
+    /// 验证 Finder 位于前台时读取 Finder 当前目录。
+    func testShortcutPolicyUsesFinderDirectoryWhenFinderIsFrontmost() {
+        XCTAssertEqual(
+            ShortcutPolicy.action(
                 frontmostBundleIdentifier: "com.apple.finder"
-            )
+            ),
+            .finderDirectory
         )
-        XCTAssertFalse(
-            ShortcutPolicy.shouldHandle(
+    }
+
+    /// 验证 Finder 不在前台时快捷键直接回退桌面目录。
+    func testShortcutPolicyUsesDesktopWhenFinderIsNotFrontmost() {
+        XCTAssertEqual(
+            ShortcutPolicy.action(
                 frontmostBundleIdentifier: "com.apple.Terminal"
-            )
+            ),
+            .desktopDirectory
         )
-        XCTAssertFalse(
-            ShortcutPolicy.shouldHandle(frontmostBundleIdentifier: nil)
+    }
+
+    /// 验证系统无法返回前台应用时仍安全回退桌面目录。
+    func testShortcutPolicyUsesDesktopWithoutFrontmostApplication() {
+        XCTAssertEqual(
+            ShortcutPolicy.action(
+                frontmostBundleIdentifier: nil
+            ),
+            .desktopDirectory
+        )
+    }
+
+    /// 验证设置窗口策略使用跨空间浮动层级。
+    @MainActor
+    func testSettingsWindowUsesFloatingLevel() {
+        XCTAssertEqual(
+            SettingsWindowPresentationPolicy.level,
+            .floating
+        )
+        XCTAssertTrue(
+            SettingsWindowPresentationPolicy.collectionBehavior
+                .contains(.canJoinAllSpaces)
+        )
+        XCTAssertTrue(
+            SettingsWindowPresentationPolicy.collectionBehavior
+                .contains(.fullScreenAuxiliary)
         )
     }
 

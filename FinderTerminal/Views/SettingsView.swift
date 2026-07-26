@@ -1,5 +1,57 @@
 import KeyboardShortcuts
+import AppKit
 import SwiftUI
+
+@MainActor
+enum SettingsWindowPresentationPolicy {
+    static let level = NSWindow.Level.floating
+    static let collectionBehavior: NSWindow.CollectionBehavior = [
+        .canJoinAllSpaces,
+        .fullScreenAuxiliary
+    ]
+
+    /// 将设置窗口提升为跨空间浮动窗口并主动置前。
+    static func apply(to window: NSWindow) {
+        window.level = level
+        window.collectionBehavior.insert(collectionBehavior)
+        window.hidesOnDeactivate = false
+        window.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+}
+
+final class SettingsWindowLevelView: NSView {
+    /// 当视图进入设置窗口时，把窗口提升为跨空间浮动层级。
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        configureWindowLevel()
+    }
+
+    /// 将设置窗口置顶并确保它在全屏空间中也能显示。
+    func configureWindowLevel() {
+        guard let window else {
+            return
+        }
+        SettingsWindowPresentationPolicy.apply(to: window)
+    }
+}
+
+struct SettingsWindowLevelConfigurator: NSViewRepresentable {
+    /// 创建用于配置宿主设置窗口的透明 AppKit 视图。
+    func makeNSView(context: Context) -> SettingsWindowLevelView {
+        SettingsWindowLevelView(frame: .zero)
+    }
+
+    /// 设置窗口重绘或重新出现时再次确认浮动层级。
+    func updateNSView(
+        _ nsView: SettingsWindowLevelView,
+        context: Context
+    ) {
+        DispatchQueue.main.async {
+            nsView.configureWindowLevel()
+        }
+    }
+}
 
 struct SettingsView: View {
     @ObservedObject var controller: AppController
@@ -19,7 +71,7 @@ struct SettingsView: View {
                     name: .openFinderTerminal
                 )
 
-                Text("快捷键只会在 Finder 位于前台时执行。")
+                Text("Finder 位于前台时打开当前目录；否则打开桌面。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -70,9 +122,30 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section("更新") {
+                Button {
+                    controller.checkForUpdates()
+                } label: {
+                    HStack {
+                        Label("检查 GitHub Release 更新", systemImage: "arrow.clockwise")
+                        Spacer()
+                        if controller.isCheckingForUpdates {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                    }
+                }
+                .disabled(controller.isCheckingForUpdates)
+
+                Text(controller.updateStatusMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 430)
+        .frame(width: 500, height: 520)
+        .background(SettingsWindowLevelConfigurator())
         .onAppear {
             controller.refreshSystemState()
             controller.refreshHotkeyRegistrationStatus()

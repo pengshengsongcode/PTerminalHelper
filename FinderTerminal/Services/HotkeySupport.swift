@@ -72,9 +72,19 @@ enum FinderTerminalShortcut {
 enum ShortcutPolicy {
     static let finderBundleIdentifier = "com.apple.finder"
 
-    /// 仅当 Finder 是前台应用时允许处理全局快捷键。
-    static func shouldHandle(frontmostBundleIdentifier: String?) -> Bool {
-        frontmostBundleIdentifier == finderBundleIdentifier
+    enum Action: Equatable {
+        case finderDirectory
+        case desktopDirectory
+    }
+
+    /// Finder 在前台时读取当前目录，否则直接使用桌面目录。
+    static func action(
+        frontmostBundleIdentifier: String?
+    ) -> Action {
+        if frontmostBundleIdentifier == finderBundleIdentifier {
+            return .finderDirectory
+        }
+        return .desktopDirectory
     }
 }
 

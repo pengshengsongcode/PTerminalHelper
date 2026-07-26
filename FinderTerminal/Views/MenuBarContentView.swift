@@ -40,6 +40,18 @@ struct MenuBarContentView: View {
 
         Divider()
 
+        Button {
+            controller.checkForUpdates()
+        } label: {
+            Label(
+                controller.isCheckingForUpdates
+                    ? "正在检查更新…"
+                    : "检查更新…",
+                systemImage: "arrow.clockwise"
+            )
+        }
+        .disabled(controller.isCheckingForUpdates)
+
         if #available(macOS 14.0, *) {
             SettingsLink {
                 Text("设置…")

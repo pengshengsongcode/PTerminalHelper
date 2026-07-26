@@ -9,6 +9,8 @@ final class AppController: ObservableObject {
     @Published private(set) var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
     @Published private(set) var isHotkeyRegistered = false
     @Published private(set) var statusMessage = "等待从 Finder 打开目录"
+    @Published private(set) var isCheckingForUpdates = false
+    @Published private(set) var updateStatusMessage = "尚未检查更新"
 
     let settings: AppSettings
 
@@ -16,6 +18,7 @@ final class AppController: ObservableObject {
     private let terminalLauncher: any TerminalLaunching
     private let launchAtLoginController: any LaunchAtLoginManaging
     private let frontmostApplicationProvider: any FrontmostApplicationProviding
+    private let applicationUpdater: any ApplicationUpdating
     private let logger = Logger(
         subsystem: "com.pengshengsong.FinderTerminal",
         category: "应用控制"
@@ -34,13 +37,15 @@ final class AppController: ObservableObject {
         terminalLauncher: any TerminalLaunching = DefaultTerminalLauncher(),
         launchAtLoginController: any LaunchAtLoginManaging = DefaultLaunchAtLoginController(),
         frontmostApplicationProvider: any FrontmostApplicationProviding =
-            NSWorkspaceFrontmostApplicationProvider()
+            NSWorkspaceFrontmostApplicationProvider(),
+        applicationUpdater: any ApplicationUpdating = GitHubReleaseUpdater()
     ) {
         self.settings = settings
         self.finderPathResolver = finderPathResolver
         self.terminalLauncher = terminalLauncher
         self.launchAtLoginController = launchAtLoginController
         self.frontmostApplicationProvider = frontmostApplicationProvider
+        self.applicationUpdater = applicationUpdater
 
         let didMigrateShortcut =
             FinderTerminalShortcut.migrateLegacyDefaultIfNeeded()
@@ -90,17 +95,22 @@ final class AppController: ObservableObject {
         logger.info("全局快捷键已成功注册")
     }
 
-    /// 检查 Finder 是否位于前台，并在符合条件时执行打开操作。
+    /// Finder 在前台时读取当前目录；其他前台场景直接打开桌面目录。
     private func handleHotkey() async {
         let bundleIdentifier = frontmostApplicationProvider.bundleIdentifier()
-        guard ShortcutPolicy.shouldHandle(
+        switch ShortcutPolicy.action(
             frontmostBundleIdentifier: bundleIdentifier
-        ) else {
-            logger.debug("前台应用不是 Finder，已忽略快捷键")
-            return
+        ) {
+        case .finderDirectory:
+            _ = await openCurrentFinderDirectory()
+        case .desktopDirectory:
+            let desktopURL = desktopDirectoryURL()
+            logger.info(
+                "Finder 不在前台，快捷键将使用桌面目录：\(desktopURL.path, privacy: .public)"
+            )
+            statusMessage = "Finder 未打开，正在打开桌面…"
+            _ = await openDirectory(desktopURL)
         }
-
-        _ = await openCurrentFinderDirectory()
     }
 
     /// 从菜单栏直接读取 Finder 状态并打开终端，不要求 Finder 仍是前台应用。
@@ -126,12 +136,21 @@ final class AppController: ObservableObject {
         do {
             statusMessage = "正在读取 Finder 路径…"
             let resolution = try await finderPathResolver.resolveDirectory()
+            return await openDirectory(resolution.directoryURL)
+        } catch {
+            return handleOpenError(error)
+        }
+    }
+
+    /// 使用当前默认终端打开给定目录，并统一处理终端回退。
+    @discardableResult
+    private func openDirectory(_ directoryURL: URL) async -> Bool {
+        do {
             let launchResult = try await terminalLauncher.openNewWindow(
-                at: resolution.directoryURL,
+                at: directoryURL,
                 using: settings.selectedTerminal
             )
-
-            statusMessage = "已在 \(launchResult.launchedTerminal.displayName) 打开 \(resolution.directoryURL.path)"
+            statusMessage = "已在 \(launchResult.launchedTerminal.displayName) 打开 \(directoryURL.path)"
 
             if launchResult.didFallback {
                 presentAlert(
@@ -142,16 +161,30 @@ final class AppController: ObservableObject {
             }
             return true
         } catch {
-            let message = error.localizedDescription
-            statusMessage = message
-            logger.error("执行打开终端失败：\(message, privacy: .public)")
-            presentAlert(
-                title: "无法打开终端",
-                message: message,
-                style: .warning
-            )
-            return false
+            return handleOpenError(error)
         }
+    }
+
+    /// 返回当前用户桌面目录，并为异常环境提供安全路径回退。
+    private func desktopDirectoryURL() -> URL {
+        FileManager.default.urls(
+            for: .desktopDirectory,
+            in: .userDomainMask
+        ).first ?? FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Desktop", isDirectory: true)
+    }
+
+    /// 将目录解析或终端启动错误转换成中文提示。
+    private func handleOpenError(_ error: any Error) -> Bool {
+        let message = error.localizedDescription
+        statusMessage = message
+        logger.error("执行打开终端失败：\(message, privacy: .public)")
+        presentAlert(
+            title: "无法打开终端",
+            message: message,
+            style: .warning
+        )
+        return false
     }
 
     /// 刷新终端安装情况和登录项授权状态。
@@ -199,6 +232,85 @@ final class AppController: ObservableObject {
     /// 打开系统登录项设置，供用户处理待批准状态。
     func openLoginItemsSettings() {
         launchAtLoginController.openSystemSettings()
+    }
+
+    /// 手动检查 GitHub Release；发现新版本后自动下载并询问是否安装重启。
+    func checkForUpdates() {
+        guard !isCheckingForUpdates else {
+            return
+        }
+
+        isCheckingForUpdates = true
+        updateStatusMessage = "正在检查 GitHub Release…"
+        statusMessage = updateStatusMessage
+
+        Task { @MainActor [weak self] in
+            await self?.performUpdateCheck()
+        }
+    }
+
+    /// 完成更新检查、下载、用户确认和安装重启流程。
+    private func performUpdateCheck() async {
+        defer {
+            isCheckingForUpdates = false
+        }
+
+        do {
+            guard let update = try await applicationUpdater.checkAndDownload(
+                currentVersion: currentAppVersion
+            ) else {
+                updateStatusMessage = "当前已是最新版本 \(currentAppVersion)"
+                statusMessage = updateStatusMessage
+                presentAlert(
+                    title: "已是最新版本",
+                    message: "当前版本：\(currentAppVersion)",
+                    style: .informational
+                )
+                return
+            }
+
+            updateStatusMessage = "\(update.version) 已下载并通过校验"
+            statusMessage = updateStatusMessage
+            guard presentUpdateConfirmation(update) else {
+                logger.info("用户选择稍后安装 \(update.version, privacy: .public)")
+                return
+            }
+
+            updateStatusMessage = "正在安装 \(update.version)…"
+            statusMessage = updateStatusMessage
+            let installedURL = try applicationUpdater.install(update)
+            try applicationUpdater.relaunchApplication(at: installedURL)
+        } catch {
+            let message = error.localizedDescription
+            updateStatusMessage = message
+            statusMessage = message
+            logger.error("应用更新失败：\(message, privacy: .public)")
+            presentAlert(
+                title: "无法完成更新",
+                message: message,
+                style: .warning
+            )
+        }
+    }
+
+    /// 下载完成后询问用户是否立即替换应用并重新打开。
+    private func presentUpdateConfirmation(
+        _ update: DownloadedUpdate
+    ) -> Bool {
+        let alert = NSAlert()
+        alert.messageText = "新版本 \(update.version) 已下载"
+        alert.informativeText = "更新包已通过 SHA-256、应用标识和代码签名校验。是否立即更新并重新打开 Finder Terminal？"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "更新并重新打开")
+        alert.addButton(withTitle: "稍后")
+        NSApp.activate(ignoringOtherApps: true)
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    private var currentAppVersion: String {
+        Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleShortVersionString"
+        ) as? String ?? "0.0.0"
     }
 
     /// 完成首次引导，保存登录项选择并关闭欢迎窗口。
