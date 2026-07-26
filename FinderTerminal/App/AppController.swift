@@ -7,6 +7,7 @@ import SwiftUI
 final class AppController: ObservableObject {
     @Published private(set) var installedTerminals: [TerminalKind] = []
     @Published private(set) var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
+    @Published private(set) var isHotkeyRegistered = false
     @Published private(set) var statusMessage = "等待从 Finder 打开目录"
 
     let settings: AppSettings
@@ -41,10 +42,17 @@ final class AppController: ObservableObject {
         self.launchAtLoginController = launchAtLoginController
         self.frontmostApplicationProvider = frontmostApplicationProvider
 
+        let didMigrateShortcut =
+            FinderTerminalShortcut.migrateLegacyDefaultIfNeeded()
+        if didMigrateShortcut {
+            statusMessage = "默认快捷键已更新为 \(FinderTerminalShortcut.displayText)"
+        }
+
         refreshSystemState()
         registerHotkey()
 
         DispatchQueue.main.async { [weak self] in
+            self?.refreshHotkeyRegistrationStatus()
             self?.presentOnboardingIfNeeded()
         }
     }
@@ -56,6 +64,30 @@ final class AppController: ObservableObject {
                 await self?.handleHotkey()
             }
         }
+    }
+
+    /// 检查当前快捷键是否已被系统成功注册，并为冲突或未设置状态给出提示。
+    func refreshHotkeyRegistrationStatus() {
+        let shortcut = KeyboardShortcuts.getShortcut(
+            for: .openFinderTerminal
+        )
+        isHotkeyRegistered = KeyboardShortcuts.isEnabled(
+            for: .openFinderTerminal
+        )
+
+        guard shortcut != nil else {
+            statusMessage = "尚未设置全局快捷键"
+            logger.notice("当前没有设置全局快捷键")
+            return
+        }
+
+        guard isHotkeyRegistered else {
+            statusMessage = "快捷键注册失败，可能已被其他应用占用，请在设置中修改"
+            logger.error("全局快捷键注册失败，可能存在快捷键冲突")
+            return
+        }
+
+        logger.info("全局快捷键已成功注册")
     }
 
     /// 检查 Finder 是否位于前台，并在符合条件时执行打开操作。

@@ -46,16 +46,20 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.pengshengsong.FinderTerminal
-        MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0.1
+        CURRENT_PROJECT_VERSION: 2
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: FinderTerminal/Info.plist
         CODE_SIGN_ENTITLEMENTS: FinderTerminal/FinderTerminal.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: "-"
         COMBINE_HIDPI_IMAGES: YES
+      configs:
+        Release:
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
     scheme:
       gatherCoverageData: true
       testTargets:

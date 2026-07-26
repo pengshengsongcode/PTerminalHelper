@@ -22,6 +22,7 @@
 		C270C4B15A6C6860E31C9021 /* FinderPathModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE98D2AF8E048DC594887976 /* FinderPathModels.swift */; };
 		C9DFAEDA90A4856D581BB102 /* HotkeySupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6859FD30BFAE9F71D929CC89 /* HotkeySupport.swift */; };
 		CCD43D5A6D2ACC573822BEE3 /* FinderTerminalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C89E3839AA5ED9CA72DB5E1 /* FinderTerminalApp.swift */; };
+		D7B1EDF597C475D66759A56D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D3C7F06E0692023BC73DEBE /* Assets.xcassets */; };
 		E90F6CD4460B01BF19701EB3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4DB6C84D9CEFFC6C46DC936 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
@@ -42,6 +43,7 @@
 		3F48708C87B01EC0C5A89A92 /* AppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppController.swift; sourceTree = "<group>"; };
 		5C263B7411C4E2DF6F861FA8 /* SettingsAndShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAndShortcutTests.swift; sourceTree = "<group>"; };
 		6859FD30BFAE9F71D929CC89 /* HotkeySupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeySupport.swift; sourceTree = "<group>"; };
+		6D3C7F06E0692023BC73DEBE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		80360B7778EF19FAE636F381 /* TerminalLauncherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLauncherTests.swift; sourceTree = "<group>"; };
 		9C89E3839AA5ED9CA72DB5E1 /* FinderTerminalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderTerminalApp.swift; sourceTree = "<group>"; };
 		A9973C198CE5E9948810B6E2 /* FinderTerminal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinderTerminal.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -81,6 +83,7 @@
 		632B6DD1FFEC76CD79113DCD /* FinderTerminal */ = {
 			isa = PBXGroup;
 			children = (
+				6D3C7F06E0692023BC73DEBE /* Assets.xcassets */,
 				75F0922F682CBBB283C06CA6 /* App */,
 				C59F061A522A39B1B5EED493 /* Models */,
 				1B36C5911DDAB4359B450B62 /* Services */,
@@ -172,6 +175,7 @@
 			buildConfigurationList = ABB3B309839904C75200F7CD /* Build configuration list for PBXNativeTarget "FinderTerminal" */;
 			buildPhases = (
 				EDAE435FB23942A1FF63B40F /* Sources */,
+				20C761E9E8607F57ECAA540A /* Resources */,
 				33893FBCECE10670E05FA8B6 /* Frameworks */,
 			);
 			buildRules = (
@@ -225,6 +229,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		20C761E9E8607F57ECAA540A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D7B1EDF597C475D66759A56D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		89C4D9E32DBBB239D5D172CD /* Sources */ = {
@@ -339,7 +354,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -348,7 +363,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pengshengsong.FinderTerminal;
 				SDKROOT = macosx;
 			};
@@ -455,9 +470,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = FinderTerminal/FinderTerminal.entitlements;
 				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -466,7 +482,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pengshengsong.FinderTerminal;
 				SDKROOT = macosx;
 			};

@@ -22,6 +22,15 @@ struct SettingsView: View {
                 Text("快捷键只会在 Finder 位于前台时执行。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                if !controller.isHotkeyRegistered {
+                    Label(
+                        "当前快捷键未生效，请重新录入一个未被占用的组合。",
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                }
             }
 
             Section("终端") {
@@ -71,6 +80,16 @@ struct SettingsView: View {
         .frame(width: 500, height: 430)
         .onAppear {
             controller.refreshSystemState()
+            controller.refreshHotkeyRegistrationStatus()
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name(
+                    "KeyboardShortcuts_shortcutByNameDidChange"
+                )
+            )
+        ) { _ in
+            controller.refreshHotkeyRegistrationStatus()
         }
     }
 
