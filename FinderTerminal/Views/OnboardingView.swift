@@ -13,9 +13,9 @@ struct OnboardingView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
             HStack(spacing: 14) {
-                Image(systemName: "terminal.fill")
-                    .font(.system(size: 42))
-                    .foregroundStyle(.tint)
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 58, height: 58)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Finder Terminal")
@@ -34,9 +34,13 @@ struct OnboardingView: View {
             HStack {
                 Text("默认快捷键")
                 Spacer()
-                Text("⌘⇧T")
+                Text(FinderTerminalShortcut.displayText)
                     .font(.system(.body, design: .monospaced).bold())
             }
+
+            Text("旧版 ⌘⇧T 与 Finder 的标签页快捷键冲突，已自动更新。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             Toggle("登录时启动 Finder Terminal", isOn: $launchAtLogin)
 

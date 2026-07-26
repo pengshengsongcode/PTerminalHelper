@@ -22,6 +22,13 @@ struct MenuBarContentView: View {
 
         Text("默认终端：\(settings.selectedTerminal.displayName)")
 
+        if !controller.isHotkeyRegistered {
+            Label(
+                "快捷键未生效，请在设置中修改",
+                systemImage: "exclamationmark.triangle.fill"
+            )
+        }
+
         if !controller.statusMessage.isEmpty {
             Text(controller.statusMessage)
                 .foregroundStyle(.secondary)

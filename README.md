@@ -1,6 +1,8 @@
 # Finder Terminal
 
-Finder Terminal 是一个原生 macOS 菜单栏工具。Finder 位于前台时按 `⌘⇧T`，它会根据当前选择解析目录并打开终端新窗口。
+Finder Terminal 是一个原生 macOS 菜单栏工具。Finder 位于前台时按 `⌃⌥T`，它会根据当前选择解析目录并打开终端新窗口。
+
+> 从 v1.0.1 起，默认快捷键由 `⌘⇧T` 调整为 `⌃⌥T`，避免与 Finder 自带的“显示/隐藏标签页栏”冲突。升级后会自动迁移旧版默认配置，用户自定义快捷键不会被覆盖。
 
 ## 路径规则
 
@@ -47,6 +49,8 @@ DerivedData/Build/Products/Release/FinderTerminal.app
 3. 点击“授权并测试”。
 4. macOS 弹出自动化权限请求时，允许 Finder Terminal 控制 Finder。
 5. 如需修改权限，前往“系统设置 → 隐私与安全性 → 自动化”。
+
+如果菜单栏或设置页提示快捷键未生效，说明该组合可能已被其他应用占用，请在设置页重新录入一个快捷键。
 
 ## 隐私
 

@@ -1,11 +1,72 @@
 import AppKit
 import KeyboardShortcuts
+import os
 
 extension KeyboardShortcuts.Name {
     static let openFinderTerminal = Self(
         "openFinderTerminal",
-        initial: .init(.t, modifiers: [.command, .shift])
+        initial: FinderTerminalShortcut.recommended
     )
+}
+
+enum FinderTerminalShortcut {
+    static let recommended = KeyboardShortcuts.Shortcut(
+        .t,
+        modifiers: [.control, .option]
+    )
+    static let legacyDefault = KeyboardShortcuts.Shortcut(
+        .t,
+        modifiers: [.command, .shift]
+    )
+    static let displayText = "⌃⌥T"
+
+    private static let migrationVersion = 1
+    private static let migrationVersionKey = "shortcutMigrationVersion"
+    private static let logger = Logger(
+        subsystem: "com.pengshengsong.FinderTerminal",
+        category: "快捷键迁移"
+    )
+
+    /// 判断是否应把旧版默认快捷键迁移为不与 Finder 冲突的新快捷键。
+    static func shouldMigrate(
+        currentShortcut: KeyboardShortcuts.Shortcut?,
+        completedVersion: Int
+    ) -> Bool {
+        completedVersion < migrationVersion
+            && currentShortcut == legacyDefault
+    }
+
+    /// 首次升级到新版时迁移旧默认快捷键，并保留用户自定义的其他快捷键。
+    @MainActor
+    @discardableResult
+    static func migrateLegacyDefaultIfNeeded(
+        defaults: UserDefaults = .standard
+    ) -> Bool {
+        let completedVersion = defaults.integer(
+            forKey: migrationVersionKey
+        )
+        let currentShortcut = KeyboardShortcuts.getShortcut(
+            for: .openFinderTerminal
+        )
+        let needsMigration = shouldMigrate(
+            currentShortcut: currentShortcut,
+            completedVersion: completedVersion
+        )
+
+        if needsMigration {
+            KeyboardShortcuts.setShortcut(
+                recommended,
+                for: .openFinderTerminal
+            )
+            logger.info("已将旧版默认快捷键迁移为 ⌃⌥T")
+        }
+
+        defaults.set(
+            migrationVersion,
+            forKey: migrationVersionKey
+        )
+        return needsMigration
+    }
 }
 
 enum ShortcutPolicy {

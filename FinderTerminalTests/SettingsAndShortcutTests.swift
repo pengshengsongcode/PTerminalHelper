@@ -51,6 +51,36 @@ final class SettingsAndShortcutTests: XCTestCase {
         )
     }
 
+    /// 验证旧版默认快捷键会在首次升级时迁移。
+    func testLegacyDefaultShortcutRequiresMigration() {
+        XCTAssertTrue(
+            FinderTerminalShortcut.shouldMigrate(
+                currentShortcut: FinderTerminalShortcut.legacyDefault,
+                completedVersion: 0
+            )
+        )
+    }
+
+    /// 验证用户自定义快捷键不会被升级逻辑覆盖。
+    func testCustomShortcutDoesNotRequireMigration() {
+        XCTAssertFalse(
+            FinderTerminalShortcut.shouldMigrate(
+                currentShortcut: FinderTerminalShortcut.recommended,
+                completedVersion: 0
+            )
+        )
+    }
+
+    /// 验证已完成迁移后不会重复修改快捷键。
+    func testCompletedShortcutMigrationDoesNotRepeat() {
+        XCTAssertFalse(
+            FinderTerminalShortcut.shouldMigrate(
+                currentShortcut: FinderTerminalShortcut.legacyDefault,
+                completedVersion: 1
+            )
+        )
+    }
+
     /// 验证等待系统批准的登录项仍保持开关开启状态。
     func testLaunchAtLoginApprovalStateRemainsEnabled() {
         XCTAssertTrue(LaunchAtLoginStatus.enabled.isRequestedEnabled)
