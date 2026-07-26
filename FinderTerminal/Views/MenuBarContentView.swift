@@ -35,6 +35,9 @@ struct MenuBarContentView: View {
                 .lineLimit(2)
         }
 
+        Text("版本：\(appVersion)")
+            .foregroundStyle(.secondary)
+
         Divider()
 
         if #available(macOS 14.0, *) {
@@ -53,5 +56,12 @@ struct MenuBarContentView: View {
             controller.quitApplication()
         }
         .keyboardShortcut("q")
+    }
+
+    /// 从应用信息中读取当前发布版本号。
+    private var appVersion: String {
+        Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleShortVersionString"
+        ) as? String ?? "未知"
     }
 }

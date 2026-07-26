@@ -52,7 +52,7 @@ struct SettingsView: View {
 
             Section("启动与权限") {
                 Toggle(
-                    "登录时启动",
+                    "开机自启动",
                     isOn: launchAtLoginBinding
                 )
 
@@ -69,11 +69,6 @@ struct SettingsView: View {
                 Text("首次测试时，macOS 会请求允许 Finder Terminal 控制 Finder。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            }
-
-            Section("状态") {
-                Text(controller.statusMessage)
-                    .textSelection(.enabled)
             }
         }
         .formStyle(.grouped)

@@ -166,7 +166,7 @@ final class AppController: ObservableObject {
         statusMessage = "默认终端已切换为 \(terminal.displayName)"
     }
 
-    /// 设置登录时启动，并在系统要求人工批准时给出明确提示。
+    /// 设置开机自启动，并在系统要求人工批准时给出明确提示。
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             try launchAtLoginController.setEnabled(enabled)
@@ -180,7 +180,7 @@ final class AppController: ObservableObject {
                     style: .informational
                 )
             } else {
-                statusMessage = enabled ? "已开启登录时启动" : "已关闭登录时启动"
+                statusMessage = enabled ? "已开启开机自启动" : "已关闭开机自启动"
             }
         } catch {
             launchAtLoginStatus = launchAtLoginController.status

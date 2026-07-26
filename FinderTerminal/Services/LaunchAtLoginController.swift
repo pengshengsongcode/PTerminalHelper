@@ -16,7 +16,7 @@ enum LaunchAtLoginStatus: Equatable {
 protocol LaunchAtLoginManaging: AnyObject {
     var status: LaunchAtLoginStatus { get }
 
-    /// 修改 Finder Terminal 的登录时启动状态。
+    /// 修改 Finder Terminal 的开机自启动状态。
     func setEnabled(_ enabled: Bool) throws
 
     /// 打开系统“登录项”设置页面。

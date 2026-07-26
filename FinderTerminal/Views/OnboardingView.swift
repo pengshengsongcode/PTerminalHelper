@@ -42,7 +42,7 @@ struct OnboardingView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Toggle("登录时启动 Finder Terminal", isOn: $launchAtLogin)
+            Toggle("开机自启动 Finder Terminal", isOn: $launchAtLogin)
 
             Text("点击测试后，macOS 会询问是否允许本应用读取 Finder 当前路径。")
                 .font(.caption)

@@ -45,7 +45,7 @@ DerivedData/Build/Products/Release/FinderTerminal.app
 ## 首次使用
 
 1. 启动 `FinderTerminal.app`（系统界面显示名称为“Finder Terminal”）。
-2. 在欢迎页选择是否登录时启动。
+2. 在欢迎页选择是否开机自启动。
 3. 点击“授权并测试”。
 4. macOS 弹出自动化权限请求时，允许 Finder Terminal 控制 Finder。
 5. 如需修改权限，前往“系统设置 → 隐私与安全性 → 自动化”。
