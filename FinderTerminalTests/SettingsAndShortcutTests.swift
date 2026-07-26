@@ -86,6 +86,36 @@ final class SettingsAndShortcutTests: XCTestCase {
         XCTAssertTrue(LaunchAtLoginStatus.enabled.isRequestedEnabled)
         XCTAssertTrue(LaunchAtLoginStatus.requiresApproval.isRequestedEnabled)
         XCTAssertFalse(LaunchAtLoginStatus.disabled.isRequestedEnabled)
+        XCTAssertFalse(LaunchAtLoginStatus.notFound.isRequestedEnabled)
         XCTAssertFalse(LaunchAtLoginStatus.unavailable.isRequestedEnabled)
+    }
+
+    /// 验证系统首次返回未找到时仍会执行注册，避免开关点击无效。
+    func testLaunchAtLoginNotFoundStateRegisters() {
+        XCTAssertEqual(
+            LaunchAtLoginPolicy.action(
+                enabled: true,
+                status: .notFound
+            ),
+            .register
+        )
+    }
+
+    /// 验证已开启或待批准状态能够执行注销。
+    func testLaunchAtLoginEnabledStateUnregisters() {
+        XCTAssertEqual(
+            LaunchAtLoginPolicy.action(
+                enabled: false,
+                status: .enabled
+            ),
+            .unregister
+        )
+        XCTAssertEqual(
+            LaunchAtLoginPolicy.action(
+                enabled: false,
+                status: .requiresApproval
+            ),
+            .unregister
+        )
     }
 }

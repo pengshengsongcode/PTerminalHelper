@@ -5,10 +5,54 @@ enum LaunchAtLoginStatus: Equatable {
     case enabled
     case disabled
     case requiresApproval
+    case notFound
     case unavailable
 
     var isRequestedEnabled: Bool {
         self == .enabled || self == .requiresApproval
+    }
+}
+
+enum LaunchAtLoginAction: Equatable {
+    case register
+    case unregister
+    case noChange
+    case reportUnavailable
+}
+
+enum LaunchAtLoginPolicy {
+    /// 根据系统状态和用户选择决定下一步登录项操作。
+    static func action(
+        enabled: Bool,
+        status: LaunchAtLoginStatus
+    ) -> LaunchAtLoginAction {
+        if enabled {
+            switch status {
+            case .disabled, .notFound:
+                return .register
+            case .enabled, .requiresApproval:
+                return .noChange
+            case .unavailable:
+                return .reportUnavailable
+            }
+        }
+
+        switch status {
+        case .enabled, .requiresApproval:
+            return .unregister
+        case .disabled, .notFound:
+            return .noChange
+        case .unavailable:
+            return .reportUnavailable
+        }
+    }
+}
+
+enum LaunchAtLoginError: LocalizedError {
+    case serviceUnavailable
+
+    var errorDescription: String? {
+        "macOS 暂时无法访问登录项服务，请稍后重试。"
     }
 }
 
@@ -36,7 +80,7 @@ final class DefaultLaunchAtLoginController: LaunchAtLoginManaging {
         case .requiresApproval:
             return .requiresApproval
         case .notFound:
-            return .unavailable
+            return .notFound
         @unknown default:
             return .unavailable
         }
@@ -44,12 +88,18 @@ final class DefaultLaunchAtLoginController: LaunchAtLoginManaging {
 
     /// 根据用户选择注册或注销主应用登录项。
     func setEnabled(_ enabled: Bool) throws {
-        if enabled {
-            if service.status == .notRegistered {
-                try service.register()
-            }
-        } else if service.status == .enabled || service.status == .requiresApproval {
+        switch LaunchAtLoginPolicy.action(
+            enabled: enabled,
+            status: status
+        ) {
+        case .register:
+            try service.register()
+        case .unregister:
             try service.unregister()
+        case .noChange:
+            break
+        case .reportUnavailable:
+            throw LaunchAtLoginError.serviceUnavailable
         }
     }
 

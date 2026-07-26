@@ -169,6 +169,7 @@ final class AppController: ObservableObject {
     /// 设置开机自启动，并在系统要求人工批准时给出明确提示。
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
+            logger.info("正在\(enabled ? "开启" : "关闭", privacy: .public)开机自启动")
             try launchAtLoginController.setEnabled(enabled)
             launchAtLoginStatus = launchAtLoginController.status
 
@@ -182,6 +183,7 @@ final class AppController: ObservableObject {
             } else {
                 statusMessage = enabled ? "已开启开机自启动" : "已关闭开机自启动"
             }
+            logger.info("开机自启动状态已更新：\(self.statusMessage, privacy: .public)")
         } catch {
             launchAtLoginStatus = launchAtLoginController.status
             let message = error.localizedDescription
